@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
 
   # = MANIFEST =
   s.files = %w[
-    README
+    README.rdoc
     db-migrate.gemspec
     lib/db-migrate.rb
   ]
