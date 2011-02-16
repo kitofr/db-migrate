@@ -1,0 +1,3 @@
+This is an atempt to help the .Net community with some db-migrations. Instead of beeing bound to NANT-tasks such as DB-Deploy, you can now use SqlCmd to migrate your database.
+
+Requires: SqlCmd.exe and a Table called ChangeLog
