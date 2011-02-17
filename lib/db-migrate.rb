@@ -1,6 +1,6 @@
 module DatabaseMigrate
   class Database
-    attr_accessor :database_name, :database_server, :user, :password, :debug, :dry_run
+    attr_accessor :database_name, :database_server, :user, :password, :debug
 
     def initialize(database_server, database_name, user, password)
       @database_server, @database_name, @user, @password =  database_server, database_name, user, password
@@ -32,7 +32,7 @@ EOS
         puts "Allready at current revision. Nothing to migrate to."
         return
       end
-      puts "Migrating from: #{current_revision} to #{to}" unless @dry_run 
+      puts "Migrating from: #{current_revision} to #{to}"
       
       start_index = find_index(scripts, current_revision)
       to_index = find_index(scripts, to)
@@ -41,13 +41,13 @@ EOS
         create_changelog_entry(number, script)
         raise "Failed to apply #{script}" unless apply(script)
         if debug
-          puts "Applied: #{File.basename(script)}" unless @dry_run
+          puts "Applied: #{File.basename(script)}" 
         else
-          print "." unless @dry_run
+          print "." 
         end
         update_changelog_entry(number)
       end
-      puts "", "[done]" unless @dry_run
+      puts "", "[done]" 
     end
     
     def find_index(scripts, number)
@@ -83,8 +83,7 @@ EOS
     end
     
     def current_revision
-      return 0 if @dry_run
-      response = query "SELECT TOP(1) Change_Number FROM [ChangeLog] ORDER BY Change_Number DESC"
+      response = query("SELECT TOP(1) Change_Number FROM [ChangeLog] ORDER BY Change_Number DESC")
       row = @debug ? 3 : 2
       response.split("\n")[row].to_i
     end
@@ -104,25 +103,20 @@ EOS
     def sqlcmd(command, catalog_name = "", file = false)
       run_option = file ? "-i" : "-Q"
 
-      return handle_output(command, file) if @dry_run
-
       `SqlCmd.exe -S #{@database_server} #{run_option} \"#{command}\" -U #{@user} -P #{@password} #{catalog_name} #{debug}`
     end
 
-    def handle_output(command, file)
-      if file
-        @output << "--------- [#{File.basename(command)}]\n"
-        File.open(command).each_line { |l| @output << l }
-      else
-        @output << "---------\n#{command}" unless file
-      end
-      @output << "\n"
-      true
-    end
-
-    def output
-      @output
-    end
+    #def dry_run(migration_dir)
+    #  @output = ""
+    #  if file
+    #    @output << "--------- Change script begin: [#{File.basename(command)}]\n"
+    #    File.open(command).each_line { |l| @output << l }
+    #    @output << "\n--------- Change script end: [#{File.basename(command)}]\n"
+    #  else
+    #    @output << "---------\n#{command}" unless file
+    #  end
+    #  @output << "\n"
+    #end
 
     private
     def debug
