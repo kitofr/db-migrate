@@ -1,9 +1,10 @@
 module DatabaseMigrate
   class Database
-    attr_accessor :database_name, :database_server, :user, :password, :debug
+    attr_accessor :database_name, :database_server, :user, :password, :debug, :dry_run
 
     def initialize(database_server, database_name, user, password)
       @database_server, @database_name, @user, @password =  database_server, database_name, user, password
+      @output = ""
     end
 
     def drop
@@ -31,7 +32,7 @@ EOS
         puts "Allready at current revision. Nothing to migrate to."
         return
       end
-      puts "Migrating from: #{current_revision} to #{to}" 
+      puts "Migrating from: #{current_revision} to #{to}" unless @dry_run 
       
       start_index = find_index(scripts, current_revision)
       to_index = find_index(scripts, to)
@@ -40,13 +41,13 @@ EOS
         create_changelog_entry(number, script)
         raise "Failed to apply #{script}" unless apply(script)
         if debug
-          puts "Applied: #{File.basename(script)}"
+          puts "Applied: #{File.basename(script)}" unless @dry_run
         else
-          print "."
+          print "." unless @dry_run
         end
         update_changelog_entry(number)
       end
-      puts "", "[done]"
+      puts "", "[done]" unless @dry_run
     end
     
     def find_index(scripts, number)
@@ -82,22 +83,47 @@ EOS
     end
     
     def current_revision
+      return 0 if @dry_run
       response = query "SELECT TOP(1) Change_Number FROM [ChangeLog] ORDER BY Change_Number DESC"
       row = @debug ? 3 : 2
       response.split("\n")[row].to_i
     end
 
     def apply(file)
-      `SqlCmd.exe -S #{@database_server} -d #{@database_name} -i \"#{file}\" -U #{@user} -P #{@password} #{debug}` if File.exists?(file) 
+      sqlcmd(file, "-d #{@database_name}", true)
     end
 
     def query(command)
-      `SqlCmd.exe -S #{@database_server} -d #{@database_name} -Q \"#{command}\" -U #{@user} -P #{@password} #{debug}`
+      sqlcmd(command, "-d #{@database_name}")
     end
 
     def execute(command)
-      `SqlCmd.exe -S #{@database_server} -Q \"#{command}\" -U #{@user} -P #{@password} #{debug}`
+      sqlcmd(command)
     end
+
+    def sqlcmd(command, catalog_name = "", file = false)
+      run_option = file ? "-i" : "-Q"
+
+      return handle_output(command, file) if @dry_run
+
+      `SqlCmd.exe -S #{@database_server} #{run_option} \"#{command}\" -U #{@user} -P #{@password} #{catalog_name} #{debug}`
+    end
+
+    def handle_output(command, file)
+      if file
+        @output << "--------- [#{File.basename(command)}]\n"
+        File.open(command).each_line { |l| @output << l }
+      else
+        @output << "---------\n#{command}" unless file
+      end
+      @output << "\n"
+      true
+    end
+
+    def output
+      @output
+    end
+
     private
     def debug
       "-e" if @debug
