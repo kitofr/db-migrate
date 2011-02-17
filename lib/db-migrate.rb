@@ -29,22 +29,22 @@ EOS
       to = script_number(scripts.last) unless to
       if current_revision == to
         puts "Allready at current revision. Nothing to migrate to."
-	return
+        return
       end
       puts "Migrating from: #{current_revision} to #{to}" 
       
       start_index = find_index(scripts, current_revision)
       to_index = find_index(scripts, to)
       scripts[start_index...to_index].each do |script|
-	number = script_number(script)
-	create_changelog_entry(number, script)
-	raise "Failed to apply #{script}" unless apply(script)
-	if debug
-	  puts "Applied: #{File.basename(script)}"
-	else
-	  print "."
-	end
-	update_changelog_entry(number)
+        number = script_number(script)
+        create_changelog_entry(number, script)
+        raise "Failed to apply #{script}" unless apply(script)
+        if debug
+          puts "Applied: #{File.basename(script)}"
+        else
+          print "."
+        end
+        update_changelog_entry(number)
       end
       puts "", "[done]"
     end
@@ -55,11 +55,11 @@ EOS
     end
 
     def create_changelog_entry(number, script)
-	update_changelog = <<EOS
+      update_changelog = <<EOS
 INSERT INTO ChangeLog (Change_Number, Delta_Set, Start_Dt, Applied_By, Description) 
 VALUES (#{number}, 'Main', GETDATE(), 'dto', '#{File.basename(script)}')
 EOS
-	raise "Could not update changelog" unless query(update_changelog)
+      raise "Could not update changelog" unless query(update_changelog)
     end
 
     def update_changelog_entry(number)
@@ -70,20 +70,21 @@ EOS
       begin
         File.basename(script)[/[\d]+/].to_i
       rescue
-	puts "Failed to find number on: <#{script}>"
+        puts "Failed to find number on: <#{script}>"
       end
     end
 
     def migrations(migration_dir)
-       entries = Dir.glob(File.join(migration_dir, '*.sql'))
-       entries.sort_by do |entry|
-	 script_number(entry)
-       end
+      entries = Dir.glob(File.join(migration_dir, '*.sql'))
+      entries.sort_by do |entry|
+        script_number(entry)
+      end
     end
     
     def current_revision
       response = query "SELECT TOP(1) Change_Number FROM [ChangeLog] ORDER BY Change_Number DESC"
-      response.split("\n")[2].to_i
+      row = @debug ? 3 : 2
+      response.split("\n")[row].to_i
     end
 
     def apply(file)

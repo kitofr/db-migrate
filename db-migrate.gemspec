@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.rubygems_version = "1.3.5"
+  s.rubygems_version = "1.3.7"
   s.name             = "db-migrate"
   s.version          = "0.0.1"
   s.date             = "2011-02-16"
