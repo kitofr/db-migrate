@@ -29,9 +29,23 @@ class Record
   def self.all
     class << self
       m = self.to_s.match(/:([\w]+)\>/)
-      puts "name => #{$1}"
+      name = $1
+      puts "name => #{name}"
+
+      data = Db.query.split("\n")
+
+      data[1].each do |row|
+        Record.on_each_column_in(row) do |column|
+	  puts "column.length: <#{column.length}>"
+	end
+      end
+
+      return data[2..4].collect do |row|
+        record = (eval name).new
+	
+	record
+      end      
     end
-    ""
   end
 end
 
