@@ -50,21 +50,28 @@ EOS
       puts "", "[done]" 
     end
     
+    def apply_migrations(from, to)
+
+    end
+
     def find_index(scripts, number)
       return 0 if number == 0
       scripts.index(scripts.find { |x| x =~ /#{number}\s/ }) + 1
     end
 
     def create_changelog_entry(number, script)
-      update_changelog = <<EOS
+      command = <<EOS
 INSERT INTO ChangeLog (Change_Number, Delta_Set, Start_Dt, Applied_By, Description) 
 VALUES (#{number}, 'Main', GETDATE(), 'dto', '#{File.basename(script)}')
 EOS
-      raise "Could not update changelog" unless query(update_changelog)
+      raise "Could not update changelog" unless query(command)
+      command
     end
 
     def update_changelog_entry(number)
-      raise "Failed to complete changelog update" unless query("UPDATE ChangeLog SET Complete_Dt = GETDATE() WHERE Change_Number = #{number}")
+      command = "UPDATE ChangeLog SET Complete_Dt = GETDATE() WHERE Change_Number = #{number}"
+      raise "Failed to complete changelog update" unless query(command)
+      command
     end
 
     def script_number(script)
