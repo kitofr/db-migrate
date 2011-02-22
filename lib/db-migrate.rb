@@ -36,22 +36,26 @@ EOS
       
       start_index = find_index(scripts, current_revision)
       to_index = find_index(scripts, to)
-      scripts[start_index...to_index].each do |script|
-        number = script_number(script)
-        create_changelog_entry(number, script)
-        raise "Failed to apply #{script}" unless apply(script)
+
+      apply_migrations(scripts, start_index, to_index) do |script|
         if debug
           puts "Applied: #{File.basename(script)}" 
         else
           print "." 
         end
-        update_changelog_entry(number)
       end
+
       puts "", "[done]" 
     end
     
-    def apply_migrations(from, to)
-
+    def apply_migrations(scripts, from, to)
+      scripts[from...to].each do |script|
+        number = script_number(script)
+        create_changelog_entry(number, script)
+        raise "Failed to apply #{script}" unless apply(script)
+        yield(script) if block_given?
+        update_changelog_entry(number)
+      end
     end
 
     def find_index(scripts, number)
