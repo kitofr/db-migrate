@@ -9,13 +9,16 @@ EOS
   end
 end
 
-class Changelog
+class Record
   columns = Db.query.split("\n").first.rstrip
   columns.split(" ").each do |column| 
     define_method(column.downcase) do
       column.downcase
     end
   end
+end
+
+class Changelog < Record
 end
 
 puts "Class: #{Changelog.name}"
