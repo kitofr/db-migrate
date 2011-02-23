@@ -3,18 +3,35 @@ class Db
     <<EOS
 Change_Number Delta_Set  Start_Dt                Complete_Dt             Applied_By                                                                                           Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
 ------------- ---------- ----------------------- ----------------------- ---------------------------------------------------------------------------------------------------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            1 Main       2011-02-23 22:06:44.900 2011-02-23 22:06:45.310 dto                                                                                                  1 Create country Australia.sql                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+            2 Main       2011-02-23 22:06:45.470 2011-02-23 22:06:45.803 dto                                                                                                  2 Alter sp for Australia.sql                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+            3 Main       2011-02-23 22:06:45.913 2011-02-23 22:06:46.293 dto                                                                                                  3 Alter table TransactionBatch.sql                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
 
-(0 rows affected)
+(3 rows affected)
 EOS
   end
 end
 
 class Record
+  def self.on_each_column_in(columns)
+    columns.split(" ").each do |column| 
+      yield(column)
+    end
+  end
+
   columns = Db.query.split("\n").first.rstrip
-  columns.split(" ").each do |column| 
+  on_each_column_in(columns) do |column|
     define_method(column.downcase) do
       column.downcase
     end
+  end
+
+  def self.all
+    class << self
+      m = self.to_s.match(/:([\w]+)\>/)
+      puts "name => #{$1}"
+    end
+    ""
   end
 end
 
@@ -23,3 +40,4 @@ end
 
 puts "Class: #{Changelog.name}"
 puts "Methods: #{(Changelog.new.methods.sort - Object.methods).join(",")}"
+puts Changelog.all
