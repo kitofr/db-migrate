@@ -36,14 +36,14 @@ class Record
 
       data[1].each do |row|
         Record.on_each_column_in(row) do |column|
-	  puts "column.length: <#{column.length}>"
-	end
+          puts "column.length: <#{column.length}>"
+        end
       end
 
       return data[2..4].collect do |row|
         record = (eval name).new
-	
-	record
+
+        record
       end      
     end
   end
