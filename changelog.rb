@@ -41,8 +41,7 @@ class Record
       end
 
       return data[2..4].collect do |row|
-        record = (eval name).new
-	
+        record = (eval name).new	
 	record
       end      
     end
