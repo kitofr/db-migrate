@@ -14,7 +14,7 @@ EOS
     query.split("\n")
   end
   def self.column_names
-    rows.first.rstrip.split(" ")
+    rows.first.rstrip.split(" ").collect {|name| name.downcase}
   end
   def self.column_lengths
     rows[1].split(" ").collect do |column|
@@ -28,7 +28,7 @@ EOS
       break unless row
       column_lengths.collect do |length|
 	data = row[cnt..(cnt+length)]
-	collector = { column_names[i] => data.strip if data }
+	collector = { column_names[i].to_sym => data.strip } if data
 	cnt += length + 1
 	i += 1
 	collector
