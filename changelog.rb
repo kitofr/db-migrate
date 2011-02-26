@@ -10,6 +10,29 @@ Change_Number Delta_Set  Start_Dt                Complete_Dt             Applied
 (3 rows affected)
 EOS
   end
+  def self.rows
+    query.split("\n")
+  end
+  def self.column_names
+    rows.first.rstrip.split(" ")
+  end
+  def self.column_lengths
+    rows[1].split(" ").collect do |column|
+      column.length 
+    end
+  end
+  def self.data
+    rows[2..-2].collect do |row|
+      cnt = 0
+      break unless row
+      column_lengths.collect do |length|
+	data = row[cnt..(cnt+length)]
+	collector = data.strip if data
+	cnt += length + 1
+	collector
+      end
+    end
+  end
 end
 
 class Record
@@ -19,8 +42,7 @@ class Record
     end
   end
 
-  columns = Db.query.split("\n").first.rstrip
-  on_each_column_in(columns) do |column|
+  Db.column_names.each do |column|
     define_method(column.downcase) do
       column.downcase
     end
@@ -33,12 +55,8 @@ class Record
       puts "name => #{name}"
 
       data = Db.query.split("\n")
-
-      data[1].each do |row|
-        Record.on_each_column_in(row) do |column|
-          puts "column.length: <#{column.length}>"
-        end
-      end
+      puts Db.column_lengths.inspect
+      puts Db.data.inspect
 
       return data[2..4].collect do |row|
         record = (eval name).new	
