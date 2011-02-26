@@ -24,11 +24,13 @@ EOS
   def self.data
     rows[2..-2].collect do |row|
       cnt = 0
+      i = 0
       break unless row
       column_lengths.collect do |length|
 	data = row[cnt..(cnt+length)]
-	collector = data.strip if data
+	collector = { column_names[i] => data.strip if data }
 	cnt += length + 1
+	i += 1
 	collector
       end
     end
