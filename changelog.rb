@@ -54,16 +54,6 @@ class Record
     class << self
       m = self.to_s.match(/:([\w]+)\>/)
       name = $1
-      puts "name => #{name}"
-
-      data = Db.query.split("\n")
-      
-      #Db.data.each do |row|
-      #  row.each_pair do |prop, value|
-      #    puts "[#{prop}, #{value}]"
-      #  end
-      #end
-
       Db.data.collect do |row|
 	klass = (eval name)
 	record = klass.new
@@ -85,4 +75,6 @@ end
 
 puts "Class: #{Changelog.name}"
 puts "Methods: #{(Changelog.new.methods.sort - Object.methods).join(",")}"
-puts Changelog.all.inspect
+Changelog.all.each do |changelog|
+  puts changelog.inspect
+end
