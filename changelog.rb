@@ -1,3 +1,4 @@
+
 class Db
   def self.query
     <<EOS
@@ -23,27 +24,26 @@ EOS
   end
   def self.data
     rows[2..-2].collect do |row|
-      cnt = 0
-      i = 0
-      break unless row
-      column_lengths.collect do |length|
-	data = row[cnt..(cnt+length)]
-	collector = { column_names[i].to_sym => data.strip } if data
-	cnt += length + 1
-	i += 1
-	collector
+      cnt, i = 0, 0
+      unless row.empty? || row.nil?
+	column_lengths.collect do |length|
+	  data = row[cnt..(cnt+length)]
+	  collector = [ column_names[i].to_sym, data.strip ]
+	  cnt += length + 1
+	  i += 1
+	  collector
+	end
+      end
+    end.compact!.collect do |row|
+      row.inject({}) do |result, element|
+	result[element.first] = element.last
+	result
       end
     end
   end
 end
 
 class Record
-  def self.on_each_column_in(columns)
-    columns.split(" ").each do |column| 
-      yield(column)
-    end
-  end
-
   Db.column_names.each do |column|
     define_method(column.downcase) do
       column.downcase
@@ -57,13 +57,25 @@ class Record
       puts "name => #{name}"
 
       data = Db.query.split("\n")
-      puts Db.column_lengths.inspect
-      puts Db.data.inspect
+      
+      #Db.data.each do |row|
+      #  row.each_pair do |prop, value|
+      #    puts "[#{prop}, #{value}]"
+      #  end
+      #end
 
-      return data[2..4].collect do |row|
-        record = (eval name).new	
+      Db.data.collect do |row|
+	klass = (eval name)
+	record = klass.new
+	
+	row.each_pair do |prop, value|
+	  klass.class_eval do
+	    attr_accessor prop.to_sym
+	  end
+	  record.send "#{prop}=", value 
+	end
 	record
-      end      
+      end
     end
   end
 end
@@ -73,4 +85,4 @@ end
 
 puts "Class: #{Changelog.name}"
 puts "Methods: #{(Changelog.new.methods.sort - Object.methods).join(",")}"
-puts Changelog.all
+puts Changelog.all.inspect
