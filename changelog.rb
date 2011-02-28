@@ -38,6 +38,10 @@ EOS
     end
   end
 
+  @data_type_query = <<QUERY
+SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'ChangeLog'
+QUERY
   @to_hash = lambda{|res,e| res[e.first] = e.last; res }
 end
 
