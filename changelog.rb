@@ -24,23 +24,21 @@ EOS
   end
   def self.data
     rows[2..-2].collect do |row|
-      cnt, i = 0, 0
+      cnt = 0
       unless row.empty? || row.nil?
-	column_lengths.collect do |length|
-	  data = row[cnt..(cnt+length)]
-	  collector = [ column_names[i].to_sym, data.strip ]
-	  cnt += length + 1
-	  i += 1
-	  collector
-	end
+        (column_names.zip(column_lengths)).collect do |name, length|
+          data = row[cnt..(cnt+length)]
+          collector = [ name.to_sym, data.strip ]
+          cnt += length + 1
+          collector
+        end
       end
     end.compact!.collect do |row|
-      row.inject({}) do |result, element|
-	result[element.first] = element.last
-	result
-      end
+      row.inject({}, &@to_hash)
     end
   end
+
+  @to_hash = lambda{|res,e| res[e.first] = e.last; res }
 end
 
 class Record
@@ -55,16 +53,16 @@ class Record
       m = self.to_s.match(/:([\w]+)\>/)
       name = $1
       Db.data.collect do |row|
-	klass = (eval name)
-	record = klass.new
-	
-	row.each_pair do |prop, value|
-	  klass.class_eval do
-	    attr_accessor prop.to_sym
-	  end
-	  record.send "#{prop}=", value 
-	end
-	record
+        klass = (eval name)
+        record = klass.new
+
+        row.each_pair do |prop, value|
+          klass.class_eval do
+            attr_accessor prop.to_sym
+          end
+          record.send "#{prop}=", value 
+        end
+        record
       end
     end
   end
