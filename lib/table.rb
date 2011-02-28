@@ -45,7 +45,7 @@ EOS
 	  end
 	end
       end.compact!.collect do |row|
-	row.inject({}, &to_hash)
+	row.inject({}, to_hash)
       end
     end
     def to_hash 
