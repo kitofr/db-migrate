@@ -13,8 +13,7 @@ module Active
     def self.all
       class << self
 	include Active::Table
-	m = self.to_s.match(/:([\w]+)\>/)
-	name = $1
+	m, name = self.to_s.match(/:([\w]+)\>/), $1
 	data.collect do |row|
 	  klass = (eval name)
 	  record = klass.new
