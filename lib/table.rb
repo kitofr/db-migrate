@@ -22,31 +22,31 @@ Change_Number Delta_Set  Start_Dt                Complete_Dt             Applied
 EOS
       end
       def rows
-	query.split("\n")
+        query.split("\n")
       end
       def column_names
-	rows.first.rstrip.split(" ").collect {|name| name.downcase}
+        rows.first.rstrip.split(" ").collect {|name| name.downcase}
       end
       def column_lengths
-	rows[1].split(" ").collect do |column|
-	  column.length 
-	end
+        rows[1].split(" ").collect do |column|
+          column.length 
+        end
       end
       def data
-	rows[2..-2].collect do |row|
-	  cnt = 0
-	  unless row.empty? || row.nil?
-	    (column_names.zip(column_lengths)).collect do |name, length|
-	      data = row[cnt..(cnt+length)]
-	      collector = [ name.to_sym, data.strip ]
-	      cnt += length + 1
-	      collector
-	    end
-	  end
-	end.compact!.collect { |row| row.inject({}, &to_hash) }
+        rows[2..-2].collect do |row|
+          cnt = 0
+          unless row.empty? || row.nil?
+            (column_names.zip(column_lengths)).collect do |name, length|
+              data = row[cnt..(cnt+length)]
+              collector = [ name.to_sym, data.strip ]
+              cnt += length + 1
+              collector
+            end
+          end
+        end.compact!.collect { |row| row.inject({}, &to_hash) }
       end
       def to_hash 
-	lambda{|res,e| res[e.first] = e.last; res }
+        lambda{|res,e| res[e.first] = e.last; res }
       end
     end
   end
