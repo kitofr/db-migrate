@@ -16,7 +16,6 @@ QUERY
       end
       def query
         @x ||= database.query "SELECT * FROM [#{name}]"
-        #debug @x #name is Active::Record not Changelog
       end
       def rows
         query.split("\n")
