@@ -4,9 +4,15 @@ module Active
   class Record
     include Active::Table
 
-    column_names.each do |column|
-      define_method(column.downcase) do
-        column.downcase
+    def self.inherited(child)
+      @child = child
+      def self.name
+        @child
+      end
+      column_names.each do |column|
+        define_method(column.downcase) do
+          column.downcase
+        end
       end
     end
 

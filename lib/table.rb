@@ -1,3 +1,4 @@
+require File.join(File.dirname(__FILE__), 'db-migrate')
 module Active
   module Table
     @data_type_query = <<QUERY
@@ -10,17 +11,12 @@ QUERY
     end
 
     module ClassMethods
+      def database 
+        Active::Database.new("sql02.qb.local", "kitofr_test", "AppUserBetaWithPassword", "password")
+      end
       def query
-        puts "name: #{name}"
-	<<EOS
-Change_Number Delta_Set  Start_Dt                Complete_Dt             Applied_By                                                                                           Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
-------------- ---------- ----------------------- ----------------------- ---------------------------------------------------------------------------------------------------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-            1 Main       2011-02-23 22:06:44.900 2011-02-23 22:06:45.310 dto                                                                                                  1 Create country Australia.sql                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-            2 Main       2011-02-23 22:06:45.470 2011-02-23 22:06:45.803 dto                                                                                                  2 Alter sp for Australia.sql                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-            3 Main       2011-02-23 22:06:45.913 2011-02-23 22:06:46.293 dto                                                                                                  3 Alter table TransactionBatch.sql                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
-
-(3 rows affected)
-EOS
+        @x ||= database.query "SELECT * FROM [#{name}]"
+        #debug @x #name is Active::Record not Changelog
       end
       def rows
         query.split("\n")
@@ -48,6 +44,10 @@ EOS
       end
       def to_hash 
         lambda{|res,e| res[e.first] = e.last; res }
+      end
+      def debug(x)
+        puts x 
+        x
       end
     end
   end
