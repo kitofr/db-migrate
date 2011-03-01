@@ -13,7 +13,11 @@ module Active
     def self.all
       class << self
         include Active::Table
-        m, name = self.to_s.match(/:([\w]+)\>/), $1
+        def self.name
+          m, name = self.to_s.match(/:([\w]+)\>/), $1
+          name
+        end
+
         data.collect do |row|
           klass = (eval name)
           record = klass.new
