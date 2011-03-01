@@ -1,4 +1,4 @@
-module DatabaseMigrate
+module Active
   class Database
     attr_accessor :database_name, :database_server, :user, :password, :debug
 
