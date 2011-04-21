@@ -2,8 +2,9 @@ module Active
   class Database
     attr_accessor :database_name, :database_server, :user, :password, :debug
 
-    def initialize(database_server, database_name, user, password)
+    def initialize(database_server, database_name, user=nil, password=nil)
       @database_server, @database_name, @user, @password =  database_server, database_name, user, password
+      @integrated_security = true unless user && password
       @output = ""
     end
 
@@ -108,26 +109,20 @@ EOS
     end
 
     def execute(command)
+      puts command if debug
       sqlcmd(command)
+    end
+
+    def connection
+      return "-U #{@user} -P #{@password}" unless @integrated_security
+      "-E"
     end
 
     def sqlcmd(command, catalog_name = "", file = false)
       run_option = file ? "-i" : "-Q"
 
-      `SqlCmd.exe -S #{@database_server} #{run_option} \"#{command}\" -U #{@user} -P #{@password} #{catalog_name} #{debug}`
+      `SqlCmd.exe -S #{@database_server} #{run_option} \"#{command}\" #{connection} #{catalog_name} #{debug}`
     end
-
-    #def dry_run(migration_dir)
-    #  @output = ""
-    #  if file
-    #    @output << "--------- Change script begin: [#{File.basename(command)}]\n"
-    #    File.open(command).each_line { |l| @output << l }
-    #    @output << "\n--------- Change script end: [#{File.basename(command)}]\n"
-    #  else
-    #    @output << "---------\n#{command}" unless file
-    #  end
-    #  @output << "\n"
-    #end
 
     private
     def debug
